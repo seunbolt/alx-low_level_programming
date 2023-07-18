@@ -1,14 +1,20 @@
-#include"main.h"
+# include"main.h"
 
 /**
- * main - print alphabets
+ * print_alphabet - print the alphabets
  *
- * Return: always 0
+ * Retun (void)
  */
 
-int main(void)
+void print_alphabet(void)
 {
-	print_alphabet();
+	int i;
 
-	return (0);
+	for (i = 'a'; i <= 'z'; i++)
+
+	{
+		_putchar(i);
+	}
+	_putchar('\n');
 }
+
