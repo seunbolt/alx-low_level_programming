@@ -17,7 +17,7 @@ int is_prime(int n, int div)
 }
 /**
  * is_prime_number- checks if an integer is prime
- * @n: integer 
+ * @n: integer
  * Return: returns 0 if not prime
  */
 
@@ -28,5 +28,5 @@ int is_prime_number(int n)
 		return (0);
 	else if (n == 2)
 		return (1);
-	return (is_prime (n, 2));
+	return (is_prime(n, 2));
 }
