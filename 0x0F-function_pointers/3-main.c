@@ -1,6 +1,7 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include"3-calc.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "3-calc.h"
+#include <string.h>
 
 /**
  * main - entry point
@@ -14,6 +15,7 @@ int main(int argc, char *argv[])
 {
 	int num1, num2, result;
 	char *op;
+	char *operators = "+-*/%";
 
 	if (argc != 4)
 	{
@@ -25,7 +27,7 @@ int main(int argc, char *argv[])
 	op = argv[2];
 	num2 = atoi(argv[3]);
 
-	if (get_op_func(op) == NULL)
+	if (strlen(op) != 1 || strchr(operators, *op) == NULL)
 	{
 		printf("Error\n");
 		exit(99);
