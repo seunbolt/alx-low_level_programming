@@ -2,71 +2,83 @@
 #include <elf.h>
 
 /**
- * check_file - checks if files can be opened.
- * @file_from: file_from.
- * @file_to: file_to.
- * @argv: arguments vector.
- * Return: no return.
+ *print_error - Prints an error message to stderr and exits with status 98.
+ *@message: The error message to print.
  */
-void check_file(int file_from, int file_to, char *argv[])
+
+void print_error(const char *message)
 {
-	if (file_from == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
-		exit(98);
-	}
-	if (file_to == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]);
-		exit(99);
-	}
+	dprintf(2, "%s\n", message);
+	exit(98);
 }
 
 /**
- * main - check the code for ALX School students.
- * @argc: number of arguments.
- * @argv: arguments vector.
- * Return: Always 0.
+ *print_elf_header_info - Reads and prints the ELF header information.
+ *@fd: The file descriptor of the ELF file.
  */
+
+void print_elf_header_info(int fd)
+{
+	Elf64_Ehdr elf_header;
+	int i;
+
+	if (read(fd, &elf_header, sizeof(Elf64_Ehdr)) != sizeof(Elf64_Ehdr))
+		print_error("Unable to read ELF header");
+
+	if (elf_header.e_ident[EI_MAG0] != ELFMAG0 ||
+			elf_header.e_ident[EI_MAG1] != ELFMAG1 ||
+			elf_header.e_ident[EI_MAG2] != ELFMAG2 ||
+			elf_header.e_ident[EI_MAG3] != ELFMAG3)
+		print_error("File is not an ELF");
+
+	printf("  Magic:   ");
+	for (i = 0; i < EI_NIDENT; i++)
+		printf("%02x ", elf_header.e_ident[i]);
+	printf("\n");
+	printf("  Class:                             %s\n",
+			elf_header.e_ident[EI_CLASS] == ELFCLASS32 ? "ELF32" : "ELF64");
+	printf("  Data:                              %s\n",
+			elf_header.e_ident[EI_DATA] == ELFDATA2LSB ?
+			"2's complement, little endian" : "2's complement, big endian");
+	printf("  Version:                           %d (current)\n",
+			elf_header.e_ident[EI_VERSION]);
+	printf("  OS/ABI:                            %d\n",
+			elf_header.e_ident[EI_OSABI]);
+	printf("  ABI Version:                       %d\n",
+			elf_header.e_ident[EI_ABIVERSION]);
+	printf("  Type:                              %s\n",
+			elf_header.e_type == ET_REL ? "REL (Relocatable file)" :
+			elf_header.e_type == ET_EXEC ? "EXEC (Executable file)" :
+			elf_header.e_type == ET_DYN ? "DYN (Shared object file)" :
+			"UNKNOWN (Unknown file type)");
+	printf("  Entry point address:               0x%lx\n",
+			(unsigned long)elf_header.e_entry);
+}
+
+/**
+ *main - Entry point of the program.
+ *@argc: The number of arguments.
+ *@argv: The array of argument strings.
+ *
+ *Return: 0 on success, 98 on error.
+ */
+
 int main(int argc, char *argv[])
 {
-	int file_from, file_to, err_close;
-	ssize_t nchars, nwr;
-	char buffer[BUFFER_SIZE];
+	int fd;
 
-	if (argc != 3)
-	{
-		dprintf(STDERR_FILENO, "%s\n", "Usage: cp file_from file_to");
-		exit(97);
-	}
+	if (argc != 2)
+		print_error("Usage: elf_header elf_filename");
 
-	file_from = open(argv[1], O_RDONLY);
-	file_to = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC | O_APPEND, 0664);
-	check_file(file_from, file_to, argv);
+	fd = open(argv[1], O_RDONLY);
+	if (fd == -1)
+		print_error("Error: Can't open file");
 
-	nchars = BUFFER_SIZE;
-	while (nchars == BUFFER_SIZE)
-	{
-		nchars = read(file_from, buffer, BUFFER_SIZE);
-		if (nchars == -1)
-			check_file(-1, 0, argv);
-		nwr = write(file_to, buffer, nchars);
-		if (nwr == -1)
-			check_file(0, -1, argv);
-	}
+	print_elf_header_info(fd);
 
-	err_close = close(file_from);
-	if (err_close == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_from);
-		exit(100);
-	}
+	if (close(fd) == -1)
+		print_error("Error: Can't close file");
 
-	err_close = close(file_to);
-	if (err_close == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_from);
-		exit(100);
-	}
 	return (0);
 }
+
